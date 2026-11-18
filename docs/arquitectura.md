@@ -47,6 +47,11 @@ reservations-service ──HTTP (validar vehículo/espacio)──▶ vehicles / 
 | D23 | `updated_at` de una reserva avanza al menos 1 ms en cada cambio | spaces-service ordena los eventos por ese valor; dos cambios en el mismo milisegundo se confundirían con un duplicado. |
 | D24 | La reserva guarda copia de `plate` y `space_code` | Permite listar y filtrar por placa sin llamar a vehicles-service en cada consulta. Si la placa se edita después, la reserva conserva la placa original. |
 | D25 | Cancelar/completar una reserva que ya está en ese estado devuelve 200 sin efecto | Idempotencia para reintentos del cliente. |
+| D27 | sensors-service orquesta la entrada/salida (valida vehículo y espacio, pide ocupar/liberar, avisa a reservas) pero no decide el estado del espacio | El flujo §5.2 lo describe así; spaces-service sigue siendo la fuente de verdad. |
+| D28 | Tres resultados por evento: PROCESADO, RECHAZADO (regla de negocio, definitivo) y FALLIDO (dependencia caída, reintentable con el mismo `eventId`) | Distinguir "no se puede" de "ahora no se pudo" es lo que hace útil la idempotencia ante fallos parciales. |
+| D29 | Repetir un evento ya resuelto devuelve el resultado guardado (200 si se procesó, el mismo error si se rechazó) | §10.3: "devolver el resultado previamente almacenado". |
+| D30 | Los avisos a reservations-service tras entrar/salir el titular son de mejor esfuerzo (2 reintentos); si fallan, el evento queda PROCESADO con una nota | El estado del espacio ya es correcto (spaces-service actualizó su copia de la reserva); bloquear la entrada por eso sería peor. Limitación: la reserva puede quedar CONFIRMADA en reservations-service hasta revisarla. |
+| D31 | El historial guarda copia de placa y código de espacio | §10.4 pide mostrar espacio y placa en la tabla de eventos sin consultar otros servicios por cada fila. |
 | D26 | Las validaciones remotas (vehículo, elegibilidad del espacio) se hacen antes del bloqueo | No retener el bloqueo durante llamadas HTTP. El estado del espacio puede cambiar después, pero la regla crítica (no solapar reservas) se valida dentro del bloqueo. |
 
 ## Modelo de datos (resumen)

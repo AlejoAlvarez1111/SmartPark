@@ -31,7 +31,7 @@ Error:
 | SPACE_NOT_AVAILABLE | 409 | Espacio ocupado, reservado o fuera de servicio. |
 | RESERVATION_CONFLICT | 409 | Existe una reserva superpuesta. |
 | INVALID_STATE_TRANSITION | 409 | Cambio de estado no permitido. |
-| DUPLICATE_EVENT | 200 | Evento ya recibido; se devuelve el resultado original sin repetir el efecto. |
+| DUPLICATE_EVENT | 200 / 409 | Evento ya recibido: 200 con el resultado original si se procesó; 409 si está en proceso o el `eventId` se usó para otro evento. |
 | DEPENDENCY_UNAVAILABLE | 503 | Un servicio requerido no responde (timeout o conexión rechazada). |
 | INTERNAL_ERROR | 500 | Error no controlado (el detalle solo queda en los logs). |
 
@@ -183,6 +183,52 @@ Cancelar o completar dos veces devuelve 200 con `spaceSync: "SIN_CAMBIOS"` (idem
 
 Cada cambio se guarda en `outbox_events` dentro de la misma transacción y se envía a `PUT /api/v1/spaces/internal/reservations/:id`. Si spaces-service no responde, el evento queda PENDIENTE y se reintenta cada `OUTBOX_INTERVAL_MS` hasta `OUTBOX_MAX_ATTEMPTS` veces; luego queda FALLIDO y se registra en el log.
 
+## Sensores (sensors-service :3004)
+
+Objeto evento (historial):
+```json
+{
+  "id": "uuid", "eventId": "uuid-del-sensor", "sensorId": "SIM-SENSOR-A01", "eventType": "VEHICLE_ENTERED",
+  "spaceId": "uuid", "spaceCode": "A-01", "vehicleId": "uuid", "plate": "ABC123", "source": "MANUAL",
+  "occurredAt": "…", "processedAt": "…", "status": "PROCESADO", "resultCode": "PROCESADO", "httpStatus": 201,
+  "message": "Entrada de ABC123 registrada en A-01", "createdAt": "…"
+}
+```
+
+`status` (resultado del procesamiento):
+| Estado | Significado | HTTP |
+|---|---|---|
+| PROCESADO | El espacio se ocupó/liberó | 201 |
+| RECHAZADO | Un servicio dueño lo rechazó por una regla (espacio ocupado, vehículo inexistente…). `resultCode` guarda el código. | 404 / 409 |
+| FALLIDO | Una dependencia no respondió. **Se puede reintentar con el mismo `eventId`.** | 503 |
+| PENDIENTE | En proceso | — |
+
+| Método y ruta | Uso |
+|---|---|
+| `POST /api/v1/sensors/events/entry` | Simular entrada `{ eventId, sensorId, spaceId, vehicleId, timestamp?, source? }` |
+| `POST /api/v1/sensors/events/exit` | Simular salida `{ eventId, sensorId, spaceId, timestamp?, source? }` |
+| `GET /api/v1/sensors/events` | Historial, más reciente primero. Query: `type`, `status`, `spaceId`, `limit` (1–200, def. 50) |
+| `GET /api/v1/sensors/health` | Estado del simulador (igual que `/health`) |
+
+- `eventId` es obligatorio y lo genera quien envía el evento (el frontend usa `crypto.randomUUID()`). `source`: `MANUAL` (def.) o `AUTO` (modo automático).
+- Respuesta 201: `{ duplicate: false, event, space }` (`space` es el estado actualizado del espacio).
+- En un rechazo o fallo, el error trae el evento guardado en `error.details.event`.
+
+Flujo de una entrada:
+1. Se registra el evento (PENDIENTE). Si el `eventId` ya existe → ver idempotencia.
+2. Se consulta a vehicles-service y a spaces-service (en paralelo): vehículo inexistente → 404 `VEHICLE_NOT_FOUND` ("regístrelo primero"); inactivo → 409 `VEHICLE_INACTIVE`; espacio inexistente → 404 `SPACE_NOT_FOUND`.
+3. `POST /spaces/:id/occupy` con el mismo `eventId`. spaces-service decide (ocupado, reservado para otro, fuera de servicio → 409).
+4. Si el vehículo es el titular de una reserva, se avisa a reservations-service (`internal/:id/start`); en la salida, `complete`. Si ese aviso falla, el evento se procesa igual (el espacio ya es correcto) y el mensaje lo indica.
+5. Se guarda el resultado con la placa y el código del espacio para el historial.
+
+**Idempotencia (§10.3):**
+- Mismo `eventId` ya PROCESADO → **200**, `data.duplicate: true`, mensaje con `DUPLICATE_EVENT`, sin repetir la ocupación/liberación.
+- Mismo `eventId` ya RECHAZADO → se repite el mismo rechazo (`error.details.duplicate: true`), sin volver a llamar a spaces.
+- Mismo `eventId` FALLIDO → se vuelve a procesar.
+- Mismo `eventId` en proceso, o usado para otro tipo de evento/espacio → 409 `DUPLICATE_EVENT`.
+
+Las llamadas a otros servicios tienen timeout (`SERVICE_TIMEOUT_MS`) y 2 reintentos; son seguras de repetir porque ocupar/liberar son idempotentes por `eventId`.
+
 ## Pendientes
 
-Sensores (fase 5).
+El modo automático del simulador (§10.4) se implementa en el frontend (fase 6) usando estos mismos endpoints con `source: "AUTO"`. El evento opcional `SENSOR_ERROR` no está implementado.
