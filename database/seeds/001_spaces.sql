@@ -1,0 +1,22 @@
+-- 20 espacios de demostración: zona A (10, dos accesibles), zona B (6), zona M (4 de motos)
+INSERT IGNORE INTO parking_spaces (id, code, zone, space_type) VALUES
+  (UUID(), 'A-01', 'A', 'ACCESIBLE'),
+  (UUID(), 'A-02', 'A', 'ACCESIBLE'),
+  (UUID(), 'A-03', 'A', 'ESTANDAR'),
+  (UUID(), 'A-04', 'A', 'ESTANDAR'),
+  (UUID(), 'A-05', 'A', 'ESTANDAR'),
+  (UUID(), 'A-06', 'A', 'ESTANDAR'),
+  (UUID(), 'A-07', 'A', 'ESTANDAR'),
+  (UUID(), 'A-08', 'A', 'ESTANDAR'),
+  (UUID(), 'A-09', 'A', 'ESTANDAR'),
+  (UUID(), 'A-10', 'A', 'ESTANDAR'),
+  (UUID(), 'B-01', 'B', 'ESTANDAR'),
+  (UUID(), 'B-02', 'B', 'ESTANDAR'),
+  (UUID(), 'B-03', 'B', 'ESTANDAR'),
+  (UUID(), 'B-04', 'B', 'ESTANDAR'),
+  (UUID(), 'B-05', 'B', 'ESTANDAR'),
+  (UUID(), 'B-06', 'B', 'ESTANDAR'),
+  (UUID(), 'M-01', 'M', 'MOTO'),
+  (UUID(), 'M-02', 'M', 'MOTO'),
+  (UUID(), 'M-03', 'M', 'MOTO'),
+  (UUID(), 'M-04', 'M', 'MOTO');

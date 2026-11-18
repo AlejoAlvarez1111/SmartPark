@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartPark</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f4f6f9; color: #1c2434; margin: 0; padding: 24px 16px; }
+    main { max-width: 640px; margin: 0 auto; background: #fff; border-radius: 8px; padding: 24px; }
+    li { padding: 4px 0; }
+    .UP { color: #1b7f3b; } .DOWN, .DEGRADED { color: #b42318; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>SmartPark</h1>
+    <p>Fase 1: estado de los servicios. El panel administrativo se construye en la fase 6.</p>
+    <ul id="services"><li>Consultando /health…</li></ul>
+  </main>
+  <script>
+    fetch('/health').then((r) => r.json()).then(({ data }) => {
+      document.getElementById('services').innerHTML = Object.values(data.services)
+        .map((s) => `<li><strong>${s.service}</strong>: <span class="${s.status}">${s.status}</span> (BD ${s.database})</li>`)
+        .join('');
+    }).catch(() => {
+      document.getElementById('services').innerHTML = '<li class="DOWN">No se pudo contactar al gateway</li>';
+    });
+  </script>
+</body>
+</html>

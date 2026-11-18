@@ -1,0 +1,8 @@
+{
+  "name": "@smartpark/shared",
+  "version": "1.0.0",
+  "description": "Utilidades comunes sin dependencias: formato de respuesta, errores, requestId, logs y cliente HTTP con timeout",
+  "main": "index.js",
+  "license": "UNLICENSED",
+  "private": true
+}
