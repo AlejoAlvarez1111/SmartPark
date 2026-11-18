@@ -52,6 +52,10 @@ reservations-service ──HTTP (validar vehículo/espacio)──▶ vehicles / 
 | D29 | Repetir un evento ya resuelto devuelve el resultado guardado (200 si se procesó, el mismo error si se rechazó) | §10.3: "devolver el resultado previamente almacenado". |
 | D30 | Los avisos a reservations-service tras entrar/salir el titular son de mejor esfuerzo (2 reintentos); si fallan, el evento queda PROCESADO con una nota | El estado del espacio ya es correcto (spaces-service actualizó su copia de la reserva); bloquear la entrada por eso sería peor. Limitación: la reserva puede quedar CONFIRMADA en reservations-service hasta revisarla. |
 | D31 | El historial guarda copia de placa y código de espacio | §10.4 pide mostrar espacio y placa en la tabla de eventos sin consultar otros servicios por cada fila. |
+| D32 | `GET /api/v1/dashboard` en el gateway agrega espacios, resumen y eventos recientes | Una sola llamada por refresco del tablero; las partes de un servicio caído llegan en `null` y se nombran en `unavailable`. Sin reglas de negocio en el gateway. |
+| D33 | Frontend con módulos ES nativos y enrutado por hash, sin framework ni compilación | §18.1: HTML, CSS y JS sin framework obligatorio; se sirve tal cual desde el gateway. |
+| D34 | Actualización por consulta periódica (tablero y simulador cada 5 s, estado del sistema cada 10 s) | RF-15 y CA-12; más simple que WebSockets para un prototipo. |
+| D35 | El modo automático del simulador corre en el navegador | Usa los mismos endpoints que un sensor (con `source: "AUTO"`) y se detiene al pulsar Detener o al salir de la vista. |
 | D26 | Las validaciones remotas (vehículo, elegibilidad del espacio) se hacen antes del bloqueo | No retener el bloqueo durante llamadas HTTP. El estado del espacio puede cambiar después, pero la regla crítica (no solapar reservas) se valida dentro del bloqueo. |
 
 ## Modelo de datos (resumen)

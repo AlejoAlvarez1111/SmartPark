@@ -19,7 +19,7 @@ before(async () => {
     req.on('data', (c) => (body += c));
     req.on('end', () => {
       lastRequest = { method: req.method, url: req.url, requestId: req.headers['x-request-id'], body };
-      res.writeHead(req.url === '/health' ? 200 : 201, { 'content-type': 'application/json' });
+      res.writeHead(req.method === 'POST' ? 201 : 200, { 'content-type': 'application/json' });
       res.end(JSON.stringify({ success: true, data: { status: 'UP', database: 'UP', echo: body } }));
     });
   });
@@ -30,6 +30,7 @@ before(async () => {
     services: {
       vehicles: { name: 'vehicles-service', url: urlOf(fakeVehicles) },
       spaces: { name: 'spaces-service', url: 'http://127.0.0.1:1' }, // puerto cerrado: servicio caído
+      sensors: { name: 'sensors-service', url: urlOf(fakeVehicles) },
     },
   };
   gateway = await listen(createApp({ config, logger: silent }));
@@ -69,6 +70,16 @@ test('/health informa cada servicio sin caerse si uno no responde', async () => 
   assert.equal(data.status, 'DEGRADED');
   assert.equal(data.services.vehicles.status, 'UP');
   assert.equal(data.services.spaces.status, 'DOWN');
+});
+
+test('/dashboard agrega lo disponible y nombra lo caído sin inventar datos', async () => {
+  const res = await fetch(`${base}/api/v1/dashboard`);
+  const { data } = await res.json();
+  assert.equal(res.status, 200);
+  assert.equal(data.summary, null);
+  assert.equal(data.spaces, null);
+  assert.ok(data.recentEvents); // sensors responde
+  assert.deepEqual(data.unavailable, ['spaces-service']);
 });
 
 test('las rutas /internal/ no se exponen por el gateway', async () => {

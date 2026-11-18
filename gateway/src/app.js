@@ -4,6 +4,7 @@ const cors = require('cors');
 const { requestId, requestLogger, notFoundRoute, errorHandler } = require('@smartpark/shared');
 const { createProxy } = require('./routes/proxy');
 const { createHealth } = require('./routes/health');
+const { createDashboard } = require('./routes/dashboard');
 
 function createApp({ config, logger }) {
   const app = express();
@@ -16,6 +17,7 @@ function createApp({ config, logger }) {
   const health = createHealth(config);
   app.get('/health', health);
   app.get('/api/v1/health', health);
+  app.get('/api/v1/dashboard', createDashboard(config));
   app.use('/api/v1', createProxy(config));
   app.use('/api', notFoundRoute);
 

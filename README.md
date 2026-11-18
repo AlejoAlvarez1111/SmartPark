@@ -21,7 +21,7 @@ Cinco procesos Node.js independientes que se comunican por HTTP/JSON, cada servi
 | 3. Espacios (CRUD, estados, ocupar/liberar idempotente, mantenimiento, resumen, concurrencia) | ✅ verificada con MySQL, incluida la prueba de concurrencia §14.4 |
 | 4. Reservas (crear, listar, cancelar, completar, solapamientos, aviso a espacios con reintentos) | ✅ verificada con MySQL y flujo completo por el gateway |
 | 5. Sensores (entrada/salida simulada, idempotencia por eventId, historial, avisos a reservas) | ✅ verificada con MySQL y flujo completo por el gateway (CA-05..CA-08, CA-11) |
-| 6. Gateway y frontend | pendiente (el gateway ya enruta; hay una página mínima de estado) |
+| 6. Gateway y frontend (tablero, espacios, vehículos, reservas, simulador con modo automático, estado del sistema) | ✅ probado en el navegador contra los servicios reales, escritorio y móvil |
 | 7. Integración | pendiente |
 | 8. Pruebas y entrega | pendiente |
 
@@ -91,4 +91,3 @@ El seed es idempotente: `npm run db:setup` puede ejecutarse varias veces sin dup
 
 - [docs/arquitectura.md](docs/arquitectura.md): componentes, decisiones técnicas y limitaciones.
 - [docs/api.md](docs/api.md): formato de respuesta, códigos de error y endpoints.
-- [docs/especificacion.txt](docs/especificacion.txt): especificación funcional y técnica original (texto).

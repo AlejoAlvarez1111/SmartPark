@@ -4,27 +4,41 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SmartPark</title>
-  <style>
-    body { font-family: system-ui, sans-serif; background: #f4f6f9; color: #1c2434; margin: 0; padding: 24px 16px; }
-    main { max-width: 640px; margin: 0 auto; background: #fff; border-radius: 8px; padding: 24px; }
-    li { padding: 4px 0; }
-    .UP { color: #1b7f3b; } .DOWN, .DEGRADED { color: #b42318; }
-  </style>
+  <link rel="icon" href="assets/img/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="assets/css/app.css">
 </head>
 <body>
-  <main>
-    <h1>SmartPark</h1>
-    <p>Fase 1: estado de los servicios. El panel administrativo se construye en la fase 6.</p>
-    <ul id="services"><li>Consultando /health…</li></ul>
-  </main>
-  <script>
-    fetch('/health').then((r) => r.json()).then(({ data }) => {
-      document.getElementById('services').innerHTML = Object.values(data.services)
-        .map((s) => `<li><strong>${s.service}</strong>: <span class="${s.status}">${s.status}</span> (BD ${s.database})</li>`)
-        .join('');
-    }).catch(() => {
-      document.getElementById('services').innerHTML = '<li class="DOWN">No se pudo contactar al gateway</li>';
-    });
-  </script>
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+
+  <header class="sidebar">
+    <a class="brand" href="#dashboard" aria-label="SmartPark, ir al tablero">
+      <img src="assets/img/logo.svg" alt="" width="32" height="32">
+      <span>SmartPark</span>
+    </a>
+    <nav aria-label="Secciones">
+      <ul class="nav">
+        <li><a href="#dashboard" data-route="dashboard">Tablero</a></li>
+        <li><a href="#espacios" data-route="espacios">Espacios</a></li>
+        <li><a href="#vehiculos" data-route="vehiculos">Vehículos</a></li>
+        <li><a href="#reservas" data-route="reservas">Reservas</a></li>
+        <li><a href="#simulador" data-route="simulador">Simulador</a></li>
+        <li><a href="#sistema" data-route="sistema">Estado del sistema</a></li>
+      </ul>
+    </nav>
+    <a class="connection" href="#sistema" id="connection" data-state="checking">
+      <span class="connection-dot" aria-hidden="true"></span>
+      <span class="connection-text">Comprobando servicios…</span>
+    </a>
+  </header>
+
+  <main id="main" tabindex="-1"></main>
+
+  <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+  <dialog class="dialog" id="dialog"></dialog>
+
+  <script type="module" src="assets/js/app.js"></script>
 </body>
 </html>

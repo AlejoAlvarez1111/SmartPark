@@ -61,6 +61,10 @@ Siempre `200` mientras el gateway esté vivo. `status` es `UP` si todos los serv
 }
 ```
 
+### `GET /api/v1/dashboard` (gateway)
+
+Reúne en una llamada lo que necesita el tablero: `{ summary, spaces, recentEvents, unavailable, generatedAt }`. Si un servicio no responde, sus partes llegan en `null` y su nombre aparece en `unavailable`; el gateway no inventa datos. Siempre responde 200 mientras el gateway esté vivo.
+
 ## Vehículos (vehicles-service :3001)
 
 Objeto vehículo:
@@ -231,4 +235,4 @@ Las llamadas a otros servicios tienen timeout (`SERVICE_TIMEOUT_MS`) y 2 reinten
 
 ## Pendientes
 
-El modo automático del simulador (§10.4) se implementa en el frontend (fase 6) usando estos mismos endpoints con `source: "AUTO"`. El evento opcional `SENSOR_ERROR` no está implementado.
+El modo automático del simulador (§10.4) está en el frontend: usa estos mismos endpoints con `source: "AUTO"`. El evento opcional `SENSOR_ERROR` no está implementado.
